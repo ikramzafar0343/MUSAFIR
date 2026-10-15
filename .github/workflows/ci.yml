@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: Backend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run audit
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run audit
+      - run: npm run build
+        env:
+          APP_URL: http://localhost:3000
+          API_URL: http://127.0.0.1:5000
+          API_PREFIX: /api/v1
+          HMAC_SIGNING_SECRET: ci-hmac-secret-not-for-prod-0123456789abcdef
+          SESSION_SECRET: ci-session-secret-not-for-prod-0123456789abcdef
+
+  e2e-install:
+    name: Playwright install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - name: Typecheck Playwright config
+        run: npx tsc --noEmit playwright.config.ts --esModuleInterop --module nodenext --moduleResolution nodenext --target es2022 --skipLibCheck

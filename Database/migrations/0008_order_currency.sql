@@ -1,0 +1,2 @@
+ALTER TABLE sales_order
+  ADD COLUMN IF NOT EXISTS currency text NOT NULL DEFAULT 'USD';

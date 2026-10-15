@@ -1,0 +1,83 @@
+/*
+ * Paint-budget guardrails. Imported last so it wins over the section sheets.
+ * Everything here trades ornamental GPU work for scroll smoothness on phones.
+ */
+
+/* —— Touch / small-viewport devices —— */
+@media (max-width: 900px), (pointer: coarse) {
+  /*
+   * A blurred backdrop under a fixed header makes the browser re-sample and
+   * re-blur the page behind it on every scroll frame. Opaque tint instead.
+   */
+  .site-header-frost {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: color-mix(in srgb, var(--home-warm, var(--vd-cream)) 92%, transparent);
+  }
+
+  .site-header-scrolled,
+  .site-header-mobile-menu {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .site-header-scrolled {
+    background: color-mix(in srgb, var(--vd-cream) 94%, transparent);
+  }
+
+  /*
+   * Blurred layers re-rasterise whenever their transform animates, so these
+   * ambient loops keep the compositor busy behind every collection hero.
+   */
+  .collection-hero::before,
+  .collection-hero::after,
+  .collection-hero-pill,
+  .collection-hero-product {
+    animation: none;
+  }
+
+  .collection-hero::before,
+  .collection-hero::after {
+    filter: blur(24px);
+  }
+
+  .collection-hero-product {
+    filter: none;
+  }
+
+  /* Kill infinite ambient loops that fight scroll on phones/tablets. */
+  .product-highlights-cutout,
+  .site-footer-badge-ring,
+  .home-custom-tack-cutout,
+  .home-hero-pill-track,
+  .home-hero-badge-ring {
+    animation: none !important;
+  }
+
+  /* Drop-shadow filters on large media are expensive during scroll/composite. */
+  .home-hero-poster,
+  .home-hero-video-canvas,
+  .home-custom-tack-cutout,
+  .home-hero-product-image,
+  .collection-hero-product,
+  .product-card-still,
+  .shop-range-card-image,
+  .glow-stats-image {
+    filter: none;
+  }
+}
+
+/* —— Reduced motion: stop ambient CSS loops, not just the scripted ones —— */
+@media (prefers-reduced-motion: reduce) {
+  .collection-hero::before,
+  .collection-hero::after,
+  .collection-hero-pill,
+  .collection-hero-product,
+  .product-highlights-cutout,
+  .site-footer-badge-ring,
+  .home-custom-tack-cutout,
+  .home-hero-pill-track,
+  .home-hero-badge-ring {
+    animation: none !important;
+  }
+}

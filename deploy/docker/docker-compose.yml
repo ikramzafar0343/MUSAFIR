@@ -1,0 +1,107 @@
+name: musafir
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: musafir
+      POSTGRES_PASSWORD: ${MUSAFIR_POSTGRES_PASSWORD:?set MUSAFIR_POSTGRES_PASSWORD}
+      POSTGRES_DB: musafir
+    volumes:
+      - musafir_pgdata:/var/lib/postgresql/data
+    networks:
+      - musafir_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U musafir -d musafir"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+      target: backend
+    container_name: musafir-backend-1
+    restart: unless-stopped
+    env_file:
+      - /etc/musafir/backend.env
+    environment:
+      NODE_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: "5000"
+      # DATABASE_URL comes only from backend.env (avoid compose interpolation mismatch)
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - musafir_uploads:/app/uploads
+      - ../../Database:/app/Database:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - musafir_internal
+      - proxy
+    expose:
+      - "5000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:5000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      # Migrations + optional hero cutout conversion can take a bit after listen.
+      start_period: 90s
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+      target: frontend
+      args:
+        APP_URL: https://musafir.com
+    container_name: musafir-frontend-1
+    restart: unless-stopped
+    env_file:
+      - /etc/musafir/frontend.env
+    environment:
+      NODE_ENV: production
+      APP_URL: https://musafir.com
+      API_URL: http://musafir-backend-1:5000
+      API_PREFIX: /api/v1
+    volumes:
+      - musafir_uploads:/app/Frontend/public/uploads
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      musafir_internal:
+      proxy:
+        aliases:
+          - musafir-frontend
+    expose:
+      - "3020"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3020/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+volumes:
+  musafir_pgdata:
+  musafir_uploads:
+
+networks:
+  musafir_internal:
+    driver: bridge
+  proxy:
+    external: true
+    name: ${MUSAFIR_PROXY_NETWORK:-aviosupportdesk_avion}

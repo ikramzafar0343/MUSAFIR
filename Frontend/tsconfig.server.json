@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "src/server/**/*.ts",
+    "src/lib/env.ts",
+    "src/lib/logger.ts",
+    "src/lib/app-error.ts",
+    "src/lib/crypto.ts",
+    "src/lib/parse-schema.ts",
+    "src/types/**/*.ts",
+    "src/constants/**/*.ts",
+    "src/schemas/**/*.ts"
+  ]
+}

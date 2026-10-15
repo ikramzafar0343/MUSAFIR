@@ -1,0 +1,48 @@
+{
+  "name": "musafir-backend",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server/http/start.ts",
+    "start": "tsx src/server/http/start.ts",
+    "build": "tsc --noEmit -p tsconfig.json --pretty false",
+    "lint": "eslint src --max-warnings 0",
+    "typecheck": "tsc --noEmit -p tsconfig.json --pretty false",
+    "migrate": "tsx src/server/database/migrate.ts",
+    "seed": "tsx src/server/jobs/seed-admin.ts",
+    "test": "node scripts/run-tests.mjs && npm run test:unit",
+    "test:unit": "tsx --test src/server/media/hero-matte.test.ts src/server/media/hero-loop.test.ts src/server/media/still-cutout.test.ts src/constants/commerce.test.ts src/schemas/order.test.ts src/schemas/security-negative.test.ts src/server/middleware/authorize.test.ts src/constants/payments.test.ts src/server/services/tools/background-removal.service.test.ts src/server/api/admin/tools/background-removal.auth.test.ts",
+    "test:integration": "node scripts/integration-api.mjs",
+    "prerender:hero": "tsx scripts/prerender-hero.ts",
+    "audit": "npm audit --audit-level=high"
+  },
+  "dependencies": {
+    "@imgly/background-removal-node": "^1.4.5",
+    "bcrypt": "6.0.0",
+    "ffmpeg-static": "5.3.0",
+    "ffprobe-static": "3.1.0",
+    "nodemailer": "9.0.3",
+    "pg": "8.16.3",
+    "pino": "10.3.1",
+    "sharp": "0.35.4",
+    "tsx": "4.20.3",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.33.0",
+    "@types/bcrypt": "6.0.0",
+    "@types/ffmpeg-static": "3.0.3",
+    "@types/ffprobe-static": "2.0.3",
+    "@types/node": "24.2.0",
+    "@types/nodemailer": "6.4.17",
+    "@types/pg": "8.15.5",
+    "eslint": "9.33.0",
+    "eslint-plugin-simple-import-sort": "12.1.1",
+    "typescript": "5.9.2",
+    "typescript-eslint": "8.39.0"
+  }
+}

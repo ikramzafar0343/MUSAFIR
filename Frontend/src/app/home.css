@@ -1,0 +1,1035 @@
+/*
+ * Homepage layout + hero. Card chrome lives in zermae.css / storefront.css
+ * (VOLDOG structure, Saddlera tile colors). Do not fight GSAP hero transforms here.
+ */
+
+.home-flow {
+  position: relative;
+  /* Keep children able to mix-blend with each other (hero ↔ ribbon). */
+  isolation: auto;
+  overflow-x: clip;
+  background: #ffffff;
+  font-family: var(--vd-font);
+  color: var(--vd-body);
+  /*
+   * Half the hero ribbon's height: the svg is 126% of the ribbon's width and its
+   * viewBox is 1440x160. The ribbon is pulled up by this much and the hero panel
+   * grows by the same amount, so the panel's straight bottom edge lands on the
+   * ribbon's centre line, where the brown band always covers it.
+   */
+  --hero-side-inset: clamp(0.85rem, 2.2vw, 1.75rem);
+  --hero-ribbon-overlap: calc((100vw - (var(--hero-side-inset) * 2)) * 0.07);
+  /* How far the band's highest point reaches above the panel's bottom edge. */
+  --hero-ribbon-crest: calc(var(--hero-ribbon-overlap) * 0.7625);
+  /* Header floats over the panel — no white strip above the scene. */
+  --hero-top-pad: clamp(0.75rem, 1.5vw, 1.15rem);
+}
+
+/* —— Hero —— */
+.home-hero {
+  position: relative;
+  z-index: 3;
+  min-height: 0;
+  padding: var(--hero-top-pad) var(--hero-side-inset) 0;
+  overflow: visible;
+  background: #ffffff;
+}
+
+.home-hero-blob,
+.home-hero-flower,
+.home-hero-shell,
+.home-hero-copy,
+.home-hero-sparkle,
+.home-hero-title,
+.home-hero-support,
+.home-hero-stage,
+.home-hero-arch,
+.home-hero-botanical,
+.home-hero-product-sparkle,
+.home-hero-proof,
+.home-hero-badge,
+.home-hero-badge-ring,
+.home-hero-badge-star {
+  display: none !important;
+}
+
+.home-hero-panel {
+  position: relative;
+  /* Explicit stacking context so the WebGL horse canvas cannot paint over the ribbon. */
+  z-index: 1;
+  /* Don’t isolate the panel — merged ribbon must multiply into this olive surface. */
+  isolation: auto;
+  display: block;
+  /* Full viewport scene; header overlays the top of this panel. */
+  min-height: max(32rem, calc(100vh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
+  min-height: max(32rem, calc(100svh - var(--hero-top-pad) + var(--hero-ribbon-crest)));
+  margin: 0 auto;
+  max-width: none;
+  width: 100%;
+  padding-bottom: calc(var(--hero-ribbon-overlap) + 5.5rem);
+  overflow: hidden;
+  border-radius: var(--home-radius-hero) var(--home-radius-hero) 0 0;
+  /* Stable fill for the ribbon join. Progress scales .home-hero-scene, not this box. */
+  background:
+    radial-gradient(circle at 76% 26%, rgba(255, 255, 255, 0.28), transparent 42%),
+    linear-gradient(
+      168deg,
+      var(--hero-stage, var(--home-sage, #8f9d6e)) 0%,
+      color-mix(in srgb, var(--hero-stage, var(--home-sage, #8f9d6e)) 62%, #142221) 100%
+    );
+}
+
+/* During the intro, hide the panel fill so the scaled backdrop reads against the page. */
+html.hero-intro-active .home-hero-panel {
+  background: transparent;
+}
+
+.home-hero-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  isolation: isolate;
+  transform-origin: 50% 100%;
+}
+
+.home-hero-backdrop-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  transform-origin: 50% 50%;
+  background:
+    radial-gradient(circle at 76% 26%, rgba(255, 255, 255, 0.28), transparent 42%),
+    linear-gradient(
+      168deg,
+      var(--hero-stage, var(--home-sage, #8f9d6e)) 0%,
+      color-mix(in srgb, var(--hero-stage, var(--home-sage, #8f9d6e)) 62%, #142221) 100%
+    );
+}
+
+/* Settled: backdrop is redundant with the panel fill — keep it painted for intro only. */
+html:not(.hero-intro-active) .home-hero-backdrop-intro {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.home-hero-intro-anchor {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.home-hero-intro-anchor.is-active {
+  /* Only during the entrance — never sit above the settled cutout. */
+  z-index: 30;
+  visibility: visible;
+}
+
+.home-hero-intro-motion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: min(450px, calc(100% - 2rem));
+  width: 100%;
+}
+
+.home-hero-intro-mask {
+  overflow: hidden;
+  max-width: 100%;
+  padding-block: 0.12em;
+}
+
+.home-hero-wordmark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--hero-header-slot, 6.25rem) + 0.2rem);
+  /* Behind the cutout — subject (z-index 5) must cover the centre of the word. */
+  z-index: 1;
+  margin: 0;
+  padding-inline: 0.5rem;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.home-hero-wordmark-scroll,
+.home-hero-wordmark-reveal {
+  display: block;
+  width: 100%;
+}
+
+.home-hero-wordmark-line,
+.home-hero-intro-type {
+  display: block;
+  width: 100%;
+  font-family: var(--font-display, var(--vd-display));
+  font-size: clamp(32px, 13vw, 248px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.home-hero-intro-type {
+  font-size: clamp(1.75rem, 5vw, 2.85rem);
+}
+
+@media (max-width: 389px) {
+  .home-hero-wordmark-line {
+    font-size: clamp(28px, 9.6vw, 34px);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .home-hero-wordmark-line {
+    font-size: clamp(48px, 9vw, 104px);
+  }
+}
+
+/* Cropped silhouette — layout centers on this wrapper; GSAP does not.
+ * In front of the wordmark (VOLDOG). Ribbon (.ribbon-marquee--merged) stays above this. */
+.home-hero-subject {
+  position: absolute;
+  left: 50%;
+  top: clamp(3.25rem, 7vh, 5.25rem);
+  bottom: calc(var(--hero-ribbon-overlap) * 0.12);
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: min(92rem, 98%);
+  /* translateZ keeps this layer above the wordmark on iOS when GSAP promotes text. */
+  transform: translate3d(-50%, 0, 0);
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.home-hero-subject-reveal,
+.home-hero-subject-motion {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.home-hero-subject-motion {
+  transform-origin: 50% 100%;
+}
+
+/* Settled H1 and CTA stay readable if JS never runs. */
+.home-hero-wordmark-line,
+.home-hero-cta-wrap {
+  opacity: 1;
+}
+
+.home-hero-panel,
+.home-hero-scene,
+.home-hero-backdrop-intro,
+.home-hero-intro-motion,
+.home-hero-intro-type,
+.home-hero-wordmark-scroll,
+.home-hero-wordmark-reveal,
+.home-hero-subject-reveal {
+  transition: none;
+}
+
+/* Poster (a `fill` image over the whole box) and canvas share containment and anchoring,
+ * so the handover from poster to first video frame never shifts the horse. */
+.home-hero-poster,
+.home-hero-video-canvas {
+  object-fit: contain;
+  object-position: bottom center;
+  pointer-events: none;
+}
+
+.home-hero-poster {
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 220ms ease;
+}
+
+.home-hero-poster.is-hidden {
+  opacity: 0;
+}
+
+.home-hero-video-source {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.home-hero-video-canvas {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.home-hero-video-canvas.is-live {
+  opacity: 1;
+}
+
+@media (min-width: 768px) {
+  .home-hero-poster,
+  .home-hero-video-canvas {
+    /* Small tuck into the ribbon overlap zone (panel clips overflow; ribbon paints above). */
+    transform: translateY(1.15rem);
+  }
+}
+
+.home-hero-pill {
+  position: absolute;
+  left: clamp(1rem, 3vw, 2.5rem);
+  bottom: calc(var(--hero-ribbon-overlap) + clamp(1rem, 3vw, 2.5rem));
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  width: min(19rem, 62vw);
+  height: 3.5rem;
+  padding: 0 30px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: var(--vd-green);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.home-hero-pill-track {
+  display: inline-flex;
+  gap: 1.75rem;
+  animation: home-pill-marquee 14s linear infinite;
+}
+
+.home-hero-pill-copy {
+  flex: none;
+}
+
+/* Legacy solid pill — overridden by .vd-pill-cta when PillCta is used */
+.home-hero-cta:not(.vd-pill-cta) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 15px 35px;
+  border-radius: 50px;
+  background: var(--vd-lime);
+  color: var(--vd-green);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.home-hero-cta-wrap .home-hero-cta {
+  position: relative;
+  right: auto;
+  bottom: auto;
+}
+
+.home-hero-cta:not(.vd-pill-cta):hover {
+  background: var(--vd-lime-deep);
+  transform: none;
+}
+
+@keyframes home-pill-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 767px) {
+  .home-flow {
+    /* The ribbon svg widens to 200% below 768px, so it is taller. */
+    --hero-side-inset: 0.75rem;
+    --hero-ribbon-overlap: calc((100vw - (var(--hero-side-inset) * 2)) * 0.1111);
+    --hero-top-pad: 0.65rem;
+  }
+
+  .home-hero-panel {
+    min-height: clamp(28rem, 72svh, 36rem);
+    padding-bottom: calc(var(--hero-ribbon-overlap) + 4.75rem);
+    border-radius: clamp(1.5rem, 5vw, 2rem) clamp(1.5rem, 5vw, 2rem) 0 0;
+  }
+
+  .home-hero-wordmark {
+    top: clamp(4.25rem, 11vw, 5.25rem);
+    padding-inline: 0.65rem;
+    z-index: 1;
+  }
+
+  .home-hero-wordmark-line {
+    font-size: clamp(1.85rem, 8.8vw, 2.65rem);
+    letter-spacing: -0.025em;
+    line-height: 0.92;
+    max-width: 100%;
+  }
+
+  .home-hero-intro-type {
+    font-size: clamp(1.35rem, 6.5vw, 1.85rem);
+  }
+
+  .home-hero-scene {
+    /* Keep absolute fill; don’t let progress leftovers clip mobile layout. */
+    transform: none;
+    opacity: 1;
+  }
+
+  .home-hero-pill {
+    display: none;
+  }
+
+  .home-hero-subject {
+    top: clamp(5.75rem, 16vw, 7rem);
+    bottom: calc(var(--hero-ribbon-overlap) * 0.08);
+    width: min(100%, 22rem);
+    max-width: calc(100% - 1rem);
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 5;
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  .home-hero-subject-motion {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .home-hero-poster,
+  .home-hero-video-canvas {
+    /* Mobile: light tuck so the wave still masks the crop edge. */
+    transform: translateY(0.85rem);
+  }
+
+  .home-hero-cta-wrap {
+    left: 0;
+    right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-inline: 1rem;
+    bottom: calc(var(--hero-ribbon-overlap) + 1.15rem);
+  }
+
+  .home-hero-cta {
+    padding: 13px 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-pill-track,
+  .product-highlights-cutout,
+  .product-highlights-orb {
+    animation: none;
+  }
+}
+
+/* Wide desktop: near full-bleed panel + dominant video. */
+@media (min-width: 1100px) {
+  .home-flow {
+    --hero-side-inset: clamp(1rem, 1.8vw, 1.65rem);
+    --hero-top-pad: 0.9rem;
+  }
+
+  .home-hero-subject {
+    top: clamp(4.5rem, 8vh, 6.5rem);
+    bottom: calc(var(--hero-ribbon-overlap) * 0.05);
+    width: min(98rem, 99%);
+  }
+
+  .home-hero-poster,
+  .home-hero-video-canvas {
+    transform: translateY(1.35rem);
+  }
+
+  .home-hero-wordmark {
+    top: clamp(5.25rem, 10vh, 6.75rem);
+  }
+
+  .home-hero-cta {
+    bottom: calc(var(--hero-ribbon-overlap) + clamp(0.85rem, 2vw, 1.75rem));
+  }
+}
+
+/* —— Ribbon marquee (wavy band with scrolling type) —— */
+.ribbon-marquee {
+  position: relative;
+  z-index: 6;
+  margin-top: clamp(-3.5rem, -3vw, -1.5rem);
+  margin-bottom: clamp(-3rem, -2.5vw, -1rem);
+  overflow: visible;
+  line-height: 0;
+  pointer-events: none;
+}
+
+/*
+ * Sits on the hero panel's bottom edge so the two read as one shape. It shares
+ * the panel's side inset, so the silver above the band is the panel itself and no
+ * white can peek through where the wave dips.
+ * mix-blend multiply: dark ribbon darkens into the olive hero (VOLDOG join).
+ * z-index must beat the panel (1) so ribbon type never sits under the horse canvas.
+ */
+.ribbon-marquee--merged {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: calc(-1 * var(--hero-ribbon-overlap)) 0 -1.5vw;
+  z-index: 12;
+  isolation: isolate;
+}
+
+.ribbon-marquee--merged .ribbon-marquee-band {
+  stroke: var(--vd-ribbon-deep, #142221);
+  mix-blend-mode: multiply;
+}
+
+.ribbon-marquee--merged .ribbon-marquee-type-layer {
+  isolation: isolate;
+  mix-blend-mode: normal;
+  /* Promote type above the band stroke inside the SVG stacking. */
+  position: relative;
+  z-index: 2;
+}
+
+.home-hero-scroll {
+  position: relative;
+  /* Allow the ribbon to blend with the panel without a new stacking trap. */
+  isolation: auto;
+  overflow: visible;
+}
+
+.home-hero-layout {
+  overflow: visible;
+}
+
+.ribbon-marquee-svg {
+  display: block;
+  width: 126%;
+  height: auto;
+  margin-left: -13%;
+  overflow: visible;
+}
+
+.ribbon-marquee-band {
+  fill: none;
+  stroke-width: 70;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ribbon-marquee--lime .ribbon-marquee-band,
+.ribbon-marquee--green .ribbon-marquee-band {
+  stroke: var(--vd-ribbon);
+}
+
+.ribbon-marquee-guide {
+  fill: none;
+}
+
+.ribbon-marquee-type {
+  font-family: var(--vd-display);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.ribbon-marquee--lime .ribbon-marquee-type,
+.ribbon-marquee--green .ribbon-marquee-type {
+  fill: var(--vd-ribbon-text);
+}
+
+@media (max-width: 767px) {
+  .ribbon-marquee-svg {
+    width: 200%;
+    margin-left: -50%;
+  }
+
+  .ribbon-marquee-type {
+    font-size: 42px;
+  }
+}
+
+/* —— Shared shallow ellipse section edges (product highlights + glow stats) —— */
+.product-highlights,
+.glow-stats {
+  --curve-width: 122%;
+  --curve-depth: clamp(3.75rem, 8vw, 6.75rem);
+}
+
+@media (max-width: 1024px) {
+  .product-highlights,
+  .glow-stats {
+    --curve-width: 128%;
+    --curve-depth: clamp(3rem, 7vw, 5.25rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .product-highlights,
+  .glow-stats {
+    --curve-width: 135%;
+    --curve-depth: clamp(2.5rem, 7vw, 4rem);
+  }
+}
+
+@media (max-width: 430px) {
+  .product-highlights,
+  .glow-stats {
+    --curve-width: 145%;
+    --curve-depth: clamp(2rem, 8vw, 3.25rem);
+  }
+}
+
+.curve-edge {
+  position: absolute;
+  left: 50%;
+  z-index: 3;
+  width: var(--curve-width);
+  height: calc(var(--curve-depth) * 2);
+  border-radius: 50%;
+  background: #ffffff;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.curve-edge--top {
+  top: calc(var(--curve-depth) * -1);
+}
+
+.curve-edge--bottom {
+  bottom: calc(var(--curve-depth) * -1);
+}
+
+/*
+ * Product-highlights / glow-stats: ProgressCurve caps own the joins.
+ * Legacy velocity wash selectors kept inert.
+ */
+.product-highlights {
+  overflow: visible;
+}
+
+.highlight-curves,
+.highlight-curve-wash {
+  display: none !important;
+}
+
+/* —— Decorative ribbon curve behind a section —— */
+.ribbon-curve {
+  position: absolute;
+  inset: 38% -2% 8%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ribbon-curve svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.ribbon-curve-band {
+  fill: none;
+  stroke: var(--vd-lime, var(--home-accent, #d0d5d2));
+  stroke-width: 64;
+  stroke-linecap: round;
+}
+
+@media (max-width: 899px) {
+  .ribbon-curve {
+    inset: 36% -4% 10%;
+  }
+
+  .ribbon-curve-band {
+    stroke-width: 48;
+  }
+}
+
+/* —— Wave dividers —— */
+.wave-divider {
+  position: relative;
+  z-index: 1;
+  line-height: 0;
+}
+
+.wave-divider svg {
+  display: block;
+  width: 100%;
+  height: clamp(3rem, 9.5vw, 148px);
+}
+
+.wave-divider--from-white {
+  background: #ffffff;
+}
+
+.wave-divider--from-cream {
+  background: var(--vd-cream);
+}
+
+.wave-divider--to-white path {
+  fill: #ffffff;
+}
+
+.wave-divider--to-cream path {
+  fill: var(--vd-cream);
+}
+
+/* —— Shared section chrome —— */
+.home-flow .shop-range-title,
+.home-flow .best-sellers-title,
+.home-flow .product-highlights-title,
+.home-flow .features-heading,
+.home-flow .ritual-finder-title {
+  font-family: var(--vd-display);
+  font-style: normal;
+  font-size: clamp(1.85rem, 3.6vw, 2.45rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--vd-green);
+}
+
+.home-flow .section-mark {
+  font-weight: 700;
+  color: inherit;
+}
+
+.home-flow .section-support {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--vd-body);
+}
+
+.home-flow .vd-button,
+.home-flow .best-sellers-cta,
+.home-flow .shop-range-signature-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 35px;
+  border-radius: 50px;
+  background: var(--vd-lime);
+  color: var(--vd-green);
+  font-family: var(--vd-font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color 220ms ease;
+}
+
+.home-flow .vd-button:hover,
+.home-flow .best-sellers-cta:hover,
+.home-flow .shop-range-signature-cta:hover {
+  background: var(--vd-lime-deep);
+  transform: none;
+}
+
+/* —— Ritual finder (Voldog "find the ideal meal" bar) —— */
+.ritual-finder {
+  position: relative;
+  z-index: 2;
+  padding: 3.25rem 1.5rem 1rem;
+  background: #ffffff;
+}
+
+.ritual-finder-inner {
+  margin: 0 auto;
+  max-width: 1080px;
+  text-align: center;
+}
+
+.ritual-finder-title {
+  margin: 0 0 1.75rem;
+}
+
+.ritual-finder-bar {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 30px;
+  background: var(--vd-cream);
+}
+
+@media (min-width: 820px) {
+  .ritual-finder-bar {
+    grid-template-columns: 1fr 1fr auto;
+    align-items: center;
+    padding: 0.6rem 0.6rem 0.6rem 1.25rem;
+    border-radius: 9999px;
+  }
+}
+
+.ritual-finder-field {
+  display: block;
+  min-width: 0;
+  text-align: left;
+}
+
+.ritual-finder-select {
+  width: 100%;
+  appearance: none;
+  border: 0;
+  border-radius: 25px;
+  background: #ffffff;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--vd-green) 50%),
+    linear-gradient(135deg, var(--vd-green) 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) calc(50% - 2px),
+    calc(100% - 15px) calc(50% - 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding: 0.95rem 2.5rem 0.95rem 1.25rem;
+  font-family: var(--vd-font);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--vd-green);
+  cursor: pointer;
+}
+
+.ritual-finder-select:focus-visible {
+  outline: 2px solid var(--vd-green);
+  outline-offset: 2px;
+}
+
+.ritual-finder-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3.15rem;
+  padding: 0 1.9rem;
+  border: 0;
+  border-radius: 100px;
+  background: var(--vd-lime);
+  color: var(--vd-green);
+  font-family: var(--vd-font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 220ms ease;
+}
+
+.ritual-finder-submit:hover {
+  background: var(--vd-lime-deep);
+}
+
+.ritual-finder-submit-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* —— Shop by category (section chrome only, cards untouched) —— */
+.home-flow .shop-range {
+  z-index: 2;
+  margin-top: 0;
+  padding: 0;
+  background: var(--vd-cream, #f4f1eb);
+}
+
+.home-flow .shop-range-blob,
+.home-flow .shop-range-vine,
+.home-flow .shop-range-eyebrow-line,
+.home-flow .shop-range-eyebrow-mark,
+.home-flow .shop-range-signature-mark {
+  display: none !important;
+}
+
+.home-flow .shop-range-header {
+  margin-bottom: 2.5rem;
+  max-width: 44rem;
+}
+
+.home-flow .shop-range-eyebrow {
+  margin-bottom: 0.75rem;
+}
+
+.home-flow .shop-range-eyebrow-copy {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--vd-green);
+}
+
+.home-flow .shop-range-support {
+  margin-top: 0.9rem;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--vd-body);
+}
+
+/* Trust strip layout/colors owned by home-design.css (desktop parity on mobile). */
+
+.home-flow .shop-range-signature {
+  font-family: var(--vd-font);
+  font-size: 14px;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0.02em;
+  color: var(--vd-green);
+}
+
+/* —— Best sellers (section chrome only, cards untouched) —— */
+.home-flow .best-sellers {
+  z-index: 1;
+  margin-top: 0;
+  padding: 2rem 0 4rem;
+  background: #ffffff;
+}
+
+.home-flow .best-sellers-wash,
+.home-flow .best-sellers-blob {
+  display: none !important;
+}
+
+.home-flow .best-sellers-header {
+  margin: 0 auto 2.5rem;
+  max-width: 44rem;
+  text-align: center;
+}
+
+.home-flow .best-sellers-title {
+  margin: 0 0 0.85rem;
+  text-align: center;
+}
+
+.home-flow .best-sellers-support {
+  margin: 0 auto;
+  max-width: 34rem;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--vd-body);
+}
+
+.home-flow .best-sellers-actions {
+  margin-top: 2.75rem;
+  text-align: center;
+}
+
+/* —— Brand story —— */
+.home-flow .brand-story {
+  margin-top: 0;
+  padding-top: 2.5rem;
+  padding-bottom: 3rem;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.home-flow .brand-story-vine {
+  display: none !important;
+}
+
+.home-flow .brand-story-text {
+  font-family: var(--vd-display);
+  font-style: normal;
+  font-size: clamp(1.1rem, 1.9vw, 1.45rem);
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--vd-green);
+}
+
+.home-flow .brand-story-name {
+  font-weight: 700;
+  color: var(--vd-green);
+}
+
+/* —— Homepage motion: GSAP owns hero entrance; CSS only for section reveals —— */
+html.has-smooth-scroll {
+  scroll-behavior: auto;
+}
+
+html.home-motion-ready .home-flow .home-reveal {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.home-motion-ready .home-flow .home-reveal.is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Heading word reveals — visible until GSAP arms them */
+.vd-reveal-word {
+  opacity: 1;
+  transform: none;
+}
+
+.home-flow .vd-button,
+.home-flow .best-sellers-cta,
+.home-flow .shop-range-signature-cta,
+.home-flow .ritual-finder-submit {
+  transition:
+    background-color 220ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease;
+}
+
+.home-flow .vd-button:hover,
+.home-flow .best-sellers-cta:hover,
+.home-flow .shop-range-signature-cta:hover,
+.home-flow .ritual-finder-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(32, 78, 74, 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.home-motion-ready .home-flow .home-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .vd-reveal-word {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .home-flow .home-hero-subject {
+    transform: translate3d(-50%, 0, 0) !important;
+  }
+
+  .home-flow .vd-button:hover,
+  .home-flow .best-sellers-cta:hover,
+  .home-flow .ritual-finder-submit:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}

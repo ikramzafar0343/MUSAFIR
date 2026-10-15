@@ -1,0 +1,183 @@
+.features-section {
+  position: relative;
+  z-index: 1;
+  padding: 4.5rem 0 5rem;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.features-inner {
+  position: relative;
+  z-index: 2;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1080px;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.features-header {
+  margin: 0 auto 2.25rem;
+  max-width: 42rem;
+  text-align: center;
+}
+
+.features-support {
+  margin: 0.85rem auto 0;
+  max-width: 38rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--vd-body, #666);
+}
+
+.features-heading {
+  margin: 0;
+}
+
+/*
+ * Feature cards in one row. When there are fewer than 4 cards (e.g. Why MUSAFIR),
+ * center the group under the heading instead of leaving an empty fourth column.
+ */
+.features-grid,
+.home-flow .features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.4rem, 1.2vw, 1rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  width: 100%;
+}
+
+.features-grid:has(> :nth-child(1):last-child) {
+  grid-template-columns: minmax(0, 16rem);
+  justify-content: center;
+  margin-inline: auto;
+}
+
+.features-grid:has(> :nth-child(2):last-child) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 36rem;
+  margin-inline: auto;
+}
+
+.features-grid:has(> :nth-child(3):last-child) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 52rem;
+  margin-inline: auto;
+}
+
+/* Size & fit — three tips, same centered row as Why */
+.home-size-guide .features-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 52rem;
+  margin-inline: auto;
+}
+
+.feature-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(0.65rem, 1.6vw, 1.15rem) clamp(0.55rem, 1.4vw, 1.15rem)
+    clamp(0.75rem, 1.8vw, 1.35rem);
+  text-align: left;
+  border-radius: var(--vd-radius-card);
+  background: var(--vd-cream);
+}
+
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(1.75rem, 4.5vw, 2.5rem);
+  height: clamp(1.75rem, 4.5vw, 2.5rem);
+  margin-bottom: clamp(0.45rem, 1.2vw, 0.85rem);
+  border-radius: 9999px;
+  background: var(--vd-ribbon);
+  color: var(--vd-ribbon-text);
+  flex-shrink: 0;
+}
+
+.feature-icon svg {
+  width: clamp(0.8rem, 2.2vw, 1.05rem);
+  height: clamp(0.8rem, 2.2vw, 1.05rem);
+}
+
+.feature-title {
+  margin: 0;
+  font-family: var(--vd-font);
+  font-size: clamp(0.68rem, 1.7vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: normal;
+  line-height: 1.35;
+  color: var(--vd-green);
+}
+
+.feature-desc {
+  margin: 0.35rem 0 0;
+  max-width: none;
+  font-family: var(--vd-font);
+  font-size: clamp(0.62rem, 1.5vw, 0.88rem);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--vd-body);
+}
+
+/* Lime ribbon arcs through the card row (same idea as desktop). */
+.features-section .ribbon-curve {
+  inset: auto;
+  top: 48%;
+  right: -6%;
+  bottom: 6%;
+  left: -6%;
+  height: auto;
+  z-index: 0;
+  overflow: visible;
+}
+
+.features-section .ribbon-curve svg {
+  overflow: visible;
+}
+
+.features-section .ribbon-curve-band {
+  stroke: var(--vd-lime, var(--home-accent, #d0d5d2));
+  stroke-width: 56;
+}
+
+@media (max-width: 767px) {
+  .features-section {
+    padding: 2.75rem 0 3.25rem;
+  }
+
+  .features-inner {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+
+  .features-header {
+    margin-bottom: 1.15rem;
+  }
+
+  .features-support {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  /* Keep the ribbon centered on the shorter 4-across card row */
+  .features-section .ribbon-curve {
+    top: 46%;
+    right: -12%;
+    bottom: 4%;
+    left: -12%;
+  }
+
+  .features-section .ribbon-curve-band {
+    stroke-width: 42;
+  }
+}
