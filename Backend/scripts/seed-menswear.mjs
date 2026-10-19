@@ -1,6 +1,10 @@
 /**
- * Seed / refresh demo best-seller products for the Pakistani menswear storefront.
- * Keeps legacy SKUs so storefront bestSellerSkus links stay valid.
+ * Seed 5 coat / blazer products across shop categories as best sellers.
+ * Updates storefront bestSellerSkus to match.
+ *
+ * Run: npm run db:seed:catalog
+ * On VPS: docker compose exec backend node scripts/seed-menswear.mjs
+ *   (or from host with DATABASE_URL pointing at the musafir postgres)
  */
 import { randomUUID } from "crypto";
 import pg from "pg";
@@ -11,48 +15,95 @@ const pool = new pg.Pool({
   connectionString: databaseUrl(),
 });
 
+const RETURN_POLICY =
+  "Unused items may be exchanged within 14 days of delivery across Pakistan.\nShipping and return terms follow the published store policies.\nPayment is cash on delivery unless otherwise shown at checkout.";
+
+/** Five coats — each primary shelf differs; all also tagged coats-blazers where useful. */
 const PRODUCTS = [
   {
-    sku: "ZM-SAD-001",
+    sku: "MSF-COAT-001",
     title: "Navy Windowpane Blazer",
     slug: "navy-windowpane-blazer",
     category: "coats-blazers",
+    categories: ["coats-blazers", "new-arrivals"],
     price: 18500,
+    originalPrice: 22000,
     description:
       "Sharp navy blazer with a subtle windowpane check — built for office, shaadi season and smart evenings.",
     image: "/assets/images/musafir-coats-blazers.png",
     alt: "MUSAFIR navy windowpane blazer",
-    includes: "M",
+    includes: "M, L, XL",
     composition: "Wool-blend suiting fabric",
     care: "Dry clean only",
+    sizes: ["S", "M", "L", "XL"],
   },
   {
-    sku: "ZM-BRI-001",
-    title: "Classic White Formal Shirt",
-    slug: "classic-white-formal-shirt",
-    category: "shirts",
-    price: 4500,
+    sku: "MSF-COAT-002",
+    title: "Charcoal Structure Coat",
+    slug: "charcoal-structure-coat",
+    category: "new-arrivals",
+    categories: ["new-arrivals", "coats-blazers"],
+    price: 24900,
+    originalPrice: 28900,
     description:
-      "Clean formal shirt for workdays and evenings — easy to pair with blazers, trousers and footwear.",
-    image: "/assets/images/musafir-shirts.png",
-    alt: "MUSAFIR classic white formal shirt",
-    includes: "M",
-    composition: "Cotton",
-    care: "Machine wash cold or dry clean",
-  },
-  {
-    sku: "ZM-SHO-001",
-    title: "Charcoal Formal Trousers",
-    slug: "charcoal-formal-trousers",
-    category: "trousers",
-    price: 12000,
-    description:
-      "Tailored charcoal trousers with a clean drape — the right base for coats, shirts and matching sets.",
-    image: "/assets/images/musafir-trousers.png",
-    alt: "MUSAFIR charcoal formal trousers",
-    includes: "M",
+      "Structured charcoal coat with clean lines — a new-season layer for commute and evening plans.",
+    image: "/assets/images/musafir-new-arrivals.png",
+    alt: "MUSAFIR charcoal structure coat",
+    includes: "M, L",
     composition: "Wool-blend",
+    care: "Dry clean only",
+    sizes: ["M", "L", "XL"],
+  },
+  {
+    sku: "MSF-COAT-003",
+    title: "Midnight Peak Lapel Blazer",
+    slug: "midnight-peak-lapel-blazer",
+    category: "matching-pairs",
+    categories: ["matching-pairs", "coats-blazers"],
+    price: 21500,
+    originalPrice: null,
+    description:
+      "Midnight peak-lapel blazer that anchors matching looks with shirts and trousers.",
+    image: "/assets/images/musafir-matching-pairs.png",
+    alt: "MUSAFIR midnight peak lapel blazer",
+    includes: "M, L, XL",
+    composition: "Wool-blend suiting fabric",
+    care: "Dry clean only",
+    sizes: ["S", "M", "L", "XL"],
+  },
+  {
+    sku: "MSF-COAT-004",
+    title: "Slate Soft-Shoulder Coat",
+    slug: "slate-soft-shoulder-coat",
+    category: "coats-blazers",
+    categories: ["coats-blazers"],
+    price: 26900,
+    originalPrice: 29900,
+    description:
+      "Soft-shoulder slate coat for everyday polish — easy over formal shirts and trousers.",
+    image: "/assets/images/musafir-collection.png",
+    alt: "MUSAFIR slate soft-shoulder coat",
+    includes: "L, XL",
+    composition: "Wool-blend with soft shoulder construction",
     care: "Dry clean recommended",
+    sizes: ["M", "L", "XL", "XXL"],
+  },
+  {
+    sku: "MSF-COAT-005",
+    title: "Ink Check Everyday Blazer",
+    slug: "ink-check-everyday-blazer",
+    category: "new-arrivals",
+    categories: ["new-arrivals", "coats-blazers", "matching-pairs"],
+    price: 17500,
+    originalPrice: 19900,
+    description:
+      "Ink check everyday blazer — versatile enough for office, dinner and travel days.",
+    image: "/assets/images/musafir-hero.png",
+    alt: "MUSAFIR ink check everyday blazer",
+    includes: "S, M, L",
+    composition: "Wool-blend",
+    care: "Dry clean only",
+    sizes: ["S", "M", "L", "XL"],
   },
 ];
 
@@ -67,12 +118,12 @@ try {
       productId = randomUUID();
       await client.query(
         `insert into product (
-           id, title, slug, sku, category, price, original_price, discount, discount_type,
+           id, title, slug, sku, category, categories, price, original_price, discount, discount_type,
            description_intro, description_detail, description_highlights,
            spec_composition, spec_care, spec_includes, return_policy, sizes, tile_color,
            best_seller, stock, status
          ) values (
-           $1,$2,$3,$4,$5,$6,null,0,'percentage',$7,$7,'{}',$8,$9,$10,$11,'{}',null,true,80,'published'
+           $1,$2,$3,$4,$5,$6,$7,$8,0,'percentage',$9,$9,'{}',$10,$11,$12,$13,$14,null,true,80,'published'
          )`,
         [
           productId,
@@ -80,36 +131,42 @@ try {
           item.slug,
           item.sku,
           item.category,
+          item.categories,
           item.price,
+          item.originalPrice,
           item.description,
           item.composition,
           item.care,
           item.includes,
-          "Unused items may be exchanged within 14 days of delivery across Pakistan.\nShipping and return terms follow the published store policies.\nPayment is cash on delivery unless otherwise shown at checkout.",
+          RETURN_POLICY,
+          item.sizes,
         ],
       );
-      console.log("created", item.sku, item.title);
+      console.log("created", item.sku, item.title, "→", item.category);
     } else {
       await client.query(
         `update product set
-           title = $2, slug = $3, category = $4, price = $5,
-           description_intro = $6, description_detail = $6,
-           spec_composition = $7, spec_care = $8, spec_includes = $9,
-           best_seller = true, status = 'published', deleted_at = null
+           title = $2, slug = $3, category = $4, categories = $5, price = $6, original_price = $7,
+           description_intro = $8, description_detail = $8,
+           spec_composition = $9, spec_care = $10, spec_includes = $11,
+           sizes = $12, best_seller = true, stock = 80, status = 'published', deleted_at = null
          where id = $1`,
         [
           productId,
           item.title,
           item.slug,
           item.category,
+          item.categories,
           item.price,
+          item.originalPrice,
           item.description,
           item.composition,
           item.care,
           item.includes,
+          item.sizes,
         ],
       );
-      console.log("updated", item.sku, item.title);
+      console.log("updated", item.sku, item.title, "→", item.category);
     }
 
     await client.query("delete from product_image where product_id = $1", [productId]);
@@ -120,23 +177,11 @@ try {
     );
   }
 
-  // Scrub any other leftover equestrian product titles still in the catalog.
-  const scrub = await client.query(
-    `update product set
-       status = 'archived',
-       deleted_at = coalesce(deleted_at, now())
-     where deleted_at is null
-       and (
-         title ~* '(horse|hourse|saddle|bridle|halter|horseshoe|tack|forge|concho)'
-         or description_intro ~* '(horse|hourse|saddle|bridle|halter|horseshoe|tack|forge|concho)'
-         or category in ('saddles','bridles','halters','reins','care','tack')
-       )
-       and sku not in ('ZM-SAD-001','ZM-BRI-001','ZM-SHO-001')
-     returning sku, title`,
+  // Ensure older demo coats from earlier seeds are also best sellers if still live.
+  await client.query(
+    `update product set best_seller = true, status = 'published', deleted_at = null
+     where sku in ('ZM-SAD-001') and deleted_at is null`,
   );
-  for (const row of scrub.rows) {
-    console.log("archived equestrian leftover", row.sku, row.title);
-  }
 
   const sf = await client.query("select content from storefront_setting where setting_key = 'default'");
   const content = sf.rows[0]?.content ?? {};
@@ -147,6 +192,7 @@ try {
   console.log("storefront bestSellerSkus =>", content.bestSellerSkus);
 
   await client.query("commit");
+  console.log("done — 5 coat best sellers seeded");
 } catch (error) {
   await client.query("rollback");
   throw error;
