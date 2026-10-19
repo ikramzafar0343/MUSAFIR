@@ -62,14 +62,14 @@ services:
       dockerfile: deploy/docker/Dockerfile
       target: frontend
       args:
-        APP_URL: https://musafir.com
+        APP_URL: https://musafirss.store
     container_name: musafir-frontend-1
     restart: unless-stopped
     env_file:
       - /etc/musafir/frontend.env
     environment:
       NODE_ENV: production
-      APP_URL: https://musafir.com
+      APP_URL: https://musafirss.store
       API_URL: http://musafir-backend-1:5000
       API_PREFIX: /api/v1
     volumes:

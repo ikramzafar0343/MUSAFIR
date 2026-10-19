@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: true,
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "musafirss.store" },
+      { protocol: "https", hostname: "www.musafirss.store" },
       { protocol: "https", hostname: "musafir.com" },
       { protocol: "https", hostname: "www.musafir.com" },
       { protocol: "http", hostname: "localhost" },

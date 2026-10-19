@@ -1,8 +1,10 @@
 # MUSAFIR
 
-Production storefront for **MUSAFIR** ([musafir.com](https://musafir.com)).
+Production storefront for **MUSAFIR** ([musafirss.store](https://musafirss.store)).
 
 Monorepo: `Frontend` (Next.js) + `Backend` (Node API + Postgres).
+
+VPS: Hostinger `72.61.19.3` — see [deploy/HOSTINGER.md](deploy/HOSTINGER.md) for GoDaddy DNS + Docker cutover.
 
 ## Local development
 
@@ -23,8 +25,11 @@ npm run dev
 cd deploy/docker && docker compose build && docker compose up -d
 # Include the upgrade map in nginx http{} (once):
 #   include /var/www/musafir/deploy/nginx/musafir-map.conf;
-# Site config: deploy/nginx/musafir.com.conf (TLS) or musafir.com.http-only.conf
+# Site config: deploy/nginx/musafirss.store.conf (TLS)
+#   or musafirss.store.http-only.conf (before certbot)
 ```
+
+Full steps: [deploy/HOSTINGER.md](deploy/HOSTINGER.md) · smoke: [deploy/SMOKE.md](deploy/SMOKE.md)
 
 ## Scripts
 
