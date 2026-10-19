@@ -14,12 +14,6 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
   { id: "orders", label: "Orders", href: "/admin/orders", permission: "MANAGE_ORDERS" },
   { id: "storefront", label: "Storefront", href: "/admin/customer-side", permission: "MANAGE_CMS" },
   { id: "promos", label: "Promos", href: "/admin/promos", permission: "MANAGE_PRODUCTS" },
-  {
-    id: "tools",
-    label: "Tools",
-    href: "/admin/tools/background-remover",
-    permission: "MANAGE_PRODUCTS",
-  },
 ];
 
 export const ADMIN_QUICK_ACTIONS = [
@@ -56,13 +50,6 @@ export const ADMIN_QUICK_ACTIONS = [
     title: "Promo codes",
     description: "Percentage or fixed discounts",
     href: "/admin/promos",
-    permission: "MANAGE_PRODUCTS" as Permission,
-  },
-  {
-    id: "background-remover",
-    title: "Background remover",
-    description: "Local transparent PNG cutouts",
-    href: "/admin/tools/background-remover",
     permission: "MANAGE_PRODUCTS" as Permission,
   },
 ] as const;

@@ -15,6 +15,7 @@ export const LOCAL_PG_USER = "postgres";
 
 const BIN_CANDIDATES = [
   "C:\\Program Files\\PostgreSQL\\16\\bin",
+  "C:\\Program Files\\PostgreSQL\\17\\bin",
   "C:\\Program Files\\PostgreSQL\\18\\bin",
 ];
 

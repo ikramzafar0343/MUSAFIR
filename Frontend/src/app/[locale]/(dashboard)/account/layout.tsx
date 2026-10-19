@@ -1,20 +1,7 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
-import { AccountNav } from "@/features/account/account-nav";
-import { getSessionUser } from "@/lib/session";
-
-export default async function AccountLayout({ children }: { children: ReactNode }) {
-  const user = await getSessionUser();
-  if (!user) {
-    redirect("/login");
-  }
-  return (
-    <div className="customer-dashboard">
-      <div className="customer-dashboard-shell">
-        <AccountNav />
-        <div className="customer-dashboard-main">{children}</div>
-      </div>
-    </div>
-  );
+/** Customer account area disabled — checkout is guest-only. */
+export default function AccountLayout({ children: _children }: { children: ReactNode }) {
+  redirect("/");
 }

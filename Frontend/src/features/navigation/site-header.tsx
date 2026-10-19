@@ -15,7 +15,7 @@ import {
   useState,
 } from "react";
 
-import { IconBag, IconClose, IconHeart, IconMenu, IconSearch, IconUser } from "@/components/icons/icons";
+import { IconBag, IconClose, IconHeart, IconMenu, IconSearch } from "@/components/icons/icons";
 import { heroCtaHref, heroCtaLabel } from "@/constants/brand";
 import { MAIN_NAV, type MainNavItem } from "@/constants/navigation-ia";
 import {
@@ -44,7 +44,6 @@ import { cn } from "@/lib/cn";
 import { lockScroll } from "@/lib/scroll-lock";
 
 type SiteHeaderProps = {
-  isAuthenticated: boolean;
   cartCount: number;
   wishlistCount: number;
   megaMenus?: Record<MegaMenuId, StorefrontMegaMenu>;
@@ -196,7 +195,6 @@ function MegaCardImage({ src, alt }: { src?: string; alt: string }) {
 }
 
 export function SiteHeader({
-  isAuthenticated,
   cartCount,
   wishlistCount,
   megaMenus = DEFAULT_MEGA_MENUS,
@@ -609,15 +607,6 @@ export function SiteHeader({
                 <IconHeart />
               </HeaderUtilityVisual>
               {wishlistCount > 0 ? <span className="site-header-icon-badge">{formatBadge(wishlistCount)}</span> : null}
-            </Link>
-            <Link
-              href={isAuthenticated ? "/account" : "/login"}
-              className="site-header-icon-btn header-utility"
-              aria-label={isAuthenticated ? "Account" : "Sign in"}
-            >
-              <HeaderUtilityVisual>
-                <IconUser />
-              </HeaderUtilityVisual>
             </Link>
             <button
               type="button"
