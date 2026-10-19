@@ -1,5 +1,9 @@
 name: musafir
 
+# Shared Hostinger VPS pattern (same as zermae/marhas):
+# host nginx on :80/:443 → 127.0.0.1:3020 (FE) + 127.0.0.1:5010 (API).
+# Do not bind 3000/5000 — those are used by other sites on this box.
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -31,7 +35,6 @@ services:
       NODE_ENV: production
       API_HOST: 0.0.0.0
       API_PORT: "5000"
-      # DATABASE_URL comes only from backend.env (avoid compose interpolation mismatch)
       UPLOAD_DIR: /app/uploads
     volumes:
       - musafir_uploads:/app/uploads
@@ -41,9 +44,8 @@ services:
         condition: service_healthy
     networks:
       - musafir_internal
-      - proxy
-    expose:
-      - "5000"
+    ports:
+      - "127.0.0.1:5010:5000"
     healthcheck:
       test:
         [
@@ -53,7 +55,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
-      # Migrations + optional hero cutout conversion can take a bit after listen.
       start_period: 90s
 
   frontend:
@@ -78,12 +79,9 @@ services:
       backend:
         condition: service_healthy
     networks:
-      musafir_internal:
-      proxy:
-        aliases:
-          - musafir-frontend
-    expose:
-      - "3020"
+      - musafir_internal
+    ports:
+      - "127.0.0.1:3020:3020"
     healthcheck:
       test:
         [
@@ -102,6 +100,3 @@ volumes:
 networks:
   musafir_internal:
     driver: bridge
-  proxy:
-    external: true
-    name: ${MUSAFIR_PROXY_NETWORK:-aviosupportdesk_avion}

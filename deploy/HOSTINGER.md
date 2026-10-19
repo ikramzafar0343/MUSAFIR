@@ -75,53 +75,52 @@ export MUSAFIR_POSTGRES_PASSWORD='strong-random-password'
 # DATABASE_URL password in backend.env must match
 ```
 
-## 5. nginx bootstrap (HTTP only)
+## 5. Shared VPS note (this Hostinger box)
 
-Include the upgrade map once in `/etc/nginx/nginx.conf` inside `http { }`:
+This server already runs **zermae** / **marhas** / **greentech** on host nginx.
+Use the **host-nginx** configs (not Docker DNS `127.0.0.11`):
 
-```nginx
-include /var/www/musafir/deploy/nginx/musafir-map.conf;
-```
+| Service | Bind |
+|---------|------|
+| Frontend | `127.0.0.1:3020` |
+| API | `127.0.0.1:5010` |
 
-Enable HTTP-only site until certs exist:
+Do **not** use `:3000` / `:5000` (zermae).
+
+## 6. nginx bootstrap (HTTP only)
 
 ```bash
-ln -sf /var/www/musafir/deploy/nginx/musafirss.store.http-only.conf /etc/nginx/sites-available/musafirss.store
+cp /var/www/musafir/deploy/nginx/musafirss.store.host-http.conf /etc/nginx/sites-available/musafirss.store
 ln -sf /etc/nginx/sites-available/musafirss.store /etc/nginx/sites-enabled/musafirss.store
-rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 ```
 
-## 6. Docker Compose
+## 7. Docker Compose
 
 ```bash
 cd /var/www/musafir/deploy/docker
+export MUSAFIR_POSTGRES_PASSWORD='strong-random-password-here'
+# Put the SAME password into DATABASE_* in /etc/musafir/backend.env
 docker compose build
 docker compose up -d
 docker compose ps
-curl -fsS http://127.0.0.1:5000/api/v1/health   # via container network / publish as needed
-curl -fsSI http://musafirss.store/ || curl -fsSI http://72.61.19.3/
+curl -fsS http://127.0.0.1:5010/api/v1/health
+curl -fsSI http://127.0.0.1:3020/
 ```
 
-Migrate + seed (from backend container or host with env):
+Migrate + seed:
 
 ```bash
 docker compose exec backend npm run migrate
 docker compose exec backend npm run seed
 ```
 
-## 7. TLS (Let's Encrypt)
-
-DNS must already point at this VPS.
+## 8. TLS (Let's Encrypt)
 
 ```bash
 certbot --nginx -d musafirss.store -d www.musafirss.store
-```
-
-Then switch to the TLS site config:
-
-```bash
-ln -sf /var/www/musafir/deploy/nginx/musafirss.store.conf /etc/nginx/sites-available/musafirss.store
+# Then install the TLS site (or let certbot edit; prefer our host TLS file):
+cp /var/www/musafir/deploy/nginx/musafirss.store.host.conf /etc/nginx/sites-available/musafirss.store
 nginx -t && systemctl reload nginx
 ```
 
