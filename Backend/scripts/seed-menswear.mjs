@@ -111,8 +111,28 @@ const client = await pool.connect();
 try {
   await client.query("begin");
 
+  // Earlier demo seed used overlapping slugs (e.g. navy-windowpane-blazer on ZM-SAD-001).
+  const legacy = await client.query(
+    `update product
+     set status = 'archived', deleted_at = coalesce(deleted_at, now()), best_seller = false
+     where sku in ('ZM-SAD-001', 'ZM-BRI-001', 'ZM-SHO-001')
+        or (
+          deleted_at is null
+          and slug = any($1::text[])
+          and sku <> all($2::text[])
+        )
+     returning sku, slug`,
+    [PRODUCTS.map((item) => item.slug), PRODUCTS.map((item) => item.sku)],
+  );
+  for (const row of legacy.rows) {
+    console.log("archived colliding/legacy", row.sku, row.slug);
+  }
+
   for (const item of PRODUCTS) {
-    const existing = await client.query("select id from product where sku = $1 limit 1", [item.sku]);
+    const existing = await client.query(
+      `select id from product where sku = $1 or slug = $2 order by case when sku = $1 then 0 else 1 end limit 1`,
+      [item.sku, item.slug],
+    );
     let productId = existing.rows[0]?.id;
     if (!productId) {
       productId = randomUUID();
@@ -146,15 +166,16 @@ try {
     } else {
       await client.query(
         `update product set
-           title = $2, slug = $3, category = $4, categories = $5, price = $6, original_price = $7,
-           description_intro = $8, description_detail = $8,
-           spec_composition = $9, spec_care = $10, spec_includes = $11,
-           sizes = $12, best_seller = true, stock = 80, status = 'published', deleted_at = null
+           title = $2, slug = $3, sku = $4, category = $5, categories = $6, price = $7, original_price = $8,
+           description_intro = $9, description_detail = $9,
+           spec_composition = $10, spec_care = $11, spec_includes = $12,
+           sizes = $13, best_seller = true, stock = 80, status = 'published', deleted_at = null
          where id = $1`,
         [
           productId,
           item.title,
           item.slug,
+          item.sku,
           item.category,
           item.categories,
           item.price,
@@ -176,12 +197,6 @@ try {
       [randomUUID(), productId, item.image, item.alt],
     );
   }
-
-  // Ensure older demo coats from earlier seeds are also best sellers if still live.
-  await client.query(
-    `update product set best_seller = true, status = 'published', deleted_at = null
-     where sku in ('ZM-SAD-001') and deleted_at is null`,
-  );
 
   const sf = await client.query("select content from storefront_setting where setting_key = 'default'");
   const content = sf.rows[0]?.content ?? {};
